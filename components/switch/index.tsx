@@ -17,13 +17,13 @@ import useStyle from './style';
 export type SwitchSize = 'small' | 'default';
 export type { SwitchClickEventHandler };
 
-export type SwitchValueType = number | string | boolean;
-export type SwitchChangeEventHandler = (
-  value: SwitchValueType,
+export type SwitchValueType = number | string | boolean | undefined;
+export type SwitchChangeEventHandler<T = boolean> = (
+  value: T,
   event: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>,
 ) => void;
 
-export interface SwitchProps<T extends SwitchValueType = boolean> {
+export interface SwitchProps<T extends SwitchValueType> {
   prefixCls?: string;
   size?: SwitchSize;
   className?: string;
@@ -34,7 +34,7 @@ export interface SwitchProps<T extends SwitchValueType = boolean> {
   defaultValue?: T;
   checkedValue?: T;
   unCheckedValue?: T;
-  onChange?: SwitchChangeEventHandler;
+  onChange?: SwitchChangeEventHandler<T>;
   onClick?: SwitchClickEventHandler;
   checkedChildren?: React.ReactNode;
   unCheckedChildren?: React.ReactNode;
@@ -47,7 +47,7 @@ export interface SwitchProps<T extends SwitchValueType = boolean> {
   id?: string;
 }
 
-const InternalSwitch = <T extends SwitchValueType = boolean>(
+const InternalSwitch = <T extends SwitchValueType>(
   props: SwitchProps<T>,
   ref: React.Ref<HTMLButtonElement>,
 ) => {
@@ -60,7 +60,7 @@ const InternalSwitch = <T extends SwitchValueType = boolean>(
     rootClassName,
     style,
     checked: checkedProp,
-    value,
+    value: valueProp,
     defaultChecked: defaultCheckedProp,
     defaultValue,
     onChange,
@@ -69,9 +69,9 @@ const InternalSwitch = <T extends SwitchValueType = boolean>(
     ...restProps
   } = props;
 
-  const [checked, setChecked] = useMergedState(false, {
-    value: checkedProp ?? value === checkedValue,
-    defaultValue: defaultCheckedProp ?? defaultValue === checkedValue,
+  const [value, setValue] = useMergedState<SwitchValueType>(defaultValue, {
+    value: checkedProp ?? valueProp,
+    defaultValue: defaultCheckedProp ?? defaultValue,
   });
 
   const { getPrefixCls, direction, switch: SWITCH } = React.useContext(ConfigContext);
@@ -109,7 +109,7 @@ const InternalSwitch = <T extends SwitchValueType = boolean>(
   const mergedStyle: React.CSSProperties = { ...SWITCH?.style, ...style };
   const changeHandler: RcSwitchChangeEventHandler = (isChecked, ...rest) => {
     const value = isChecked ? checkedValue : unCheckedValue;
-    setChecked(isChecked);
+    setValue(value);
     onChange?.(value, ...rest);
   };
 
@@ -117,7 +117,7 @@ const InternalSwitch = <T extends SwitchValueType = boolean>(
     <Wave component="Switch">
       <RcSwitch
         {...restProps}
-        checked={checked}
+        checked={value === checkedValue}
         onChange={changeHandler}
         prefixCls={prefixCls}
         className={classes}

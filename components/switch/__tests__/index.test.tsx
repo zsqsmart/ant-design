@@ -88,4 +88,29 @@ describe('Switch', () => {
     rerender(<Switch unCheckedChildren="0" />);
     expect(container.querySelector('.ant-switch-inner-unchecked')).toHaveStyle('min-height: 22px');
   });
+
+  it('should be custom value', () => {
+    const mockChangeHandler = jest.fn();
+    const checkedValue = 1;
+    const unCheckedValue = 0;
+
+    const { getByRole } = render(
+      <Switch
+        defaultValue={1}
+        checkedValue={checkedValue}
+        unCheckedValue={unCheckedValue}
+        onChange={mockChangeHandler}
+      />,
+    );
+
+    const switchNode = getByRole('switch');
+    expect(switchNode).toBeTruthy();
+    expect(getByRole('switch')).toBeChecked();
+
+    fireEvent.click(switchNode);
+
+    expect(mockChangeHandler).toHaveBeenCalledWith(unCheckedValue, expect.anything());
+    // uncontrolled component, so false after click
+    expect(getByRole('switch')).not.toBeChecked();
+  });
 });
